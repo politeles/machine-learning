@@ -77,7 +77,7 @@ class LearningAgent(Agent):
         state_right = 'None' if state_dict['right']==None else state_dict['right']
 
         self.state = state_light+state_oncoming+state_left+state_right+state_dict['next_waypoint']
-        print "current state: {}".format(self.state)
+        #print "current state: {}".format(self.state)
 
                
         # TODO: Select action according to your policy
