@@ -22,10 +22,8 @@ class LearningAgent(Agent):
         self.prev_state = None
         self.prev_action = None
         self.prev_reward = None
-        # the Q-table as a list:
-        #there are 30 states, and 4 actions initialize the q_table to 0:
-
-#self.state = state_dict['light']+state_dict['oncoming']+state_dict['left']+state_dict['right']+state_dict['next_waypoint']
+        # the Q-table as a dict:
+        # Q-table initialization to 0:
         self.q_table = dict()
         for light in ['green','red']:
             for oncoming in ['None', 'forward', 'left', 'right']:
@@ -34,17 +32,6 @@ class LearningAgent(Agent):
                         for waypoint in ['forward', 'left', 'right']:
                             self.q_table[light+oncoming+left+right+waypoint] = {None:0,'forward':0,'left':0,'right':0}
 
-
-
-
-
-        #columns = 4
-        #rows = 30
-        ## create a matrix 4 columns  x 30 rows
-        #self.q_table = list()
-        #for i in range(30) :
-        #    self.q_table.append({None:0,'forward':0,'left':0,'right':0})
-#
         # parameters:
         self.gamma = 0.1
         self.learning_rate = 0.5
@@ -67,7 +54,8 @@ class LearningAgent(Agent):
         deadline = self.env.get_deadline(self)
 
         # TODO: Update state
-        # state is codified as integer the inputs are codified from 0-9 + 0 if next_waypoint is 'forward', + 10 if next_waypoint is 'right' , + 20 if next_waypoint is 'left'
+        # review 2: codify the states as a dictionary
+        # state is codified as string with the value of all inputs plus the next_waypoint value:
         state_dict = inputs
         state_dict ['next_waypoint'] = self.next_waypoint
         # compose the state as string (transforming None to string 'None')
@@ -81,109 +69,18 @@ class LearningAgent(Agent):
 
                
         # TODO: Select action according to your policy
-        # Random agent:
-        #action = self.valid_actions[random.randint(0,3)]
-
-        #basic agent that just read the inputs:
-        #if inputs['light']=='red':
-        #    # according with traffic rules, the only possible move is to the right, if there is no car on the right side.
-        #    # So, if there is no car on the right side, I'll either stay or move to the right. Otherwise, the smarcab will stay.
-        #    if inputs['right'] == None:
-        #        valid_move = [None,'right']
-        #        self.state = 0
-        #        
-        #    else:
-        #        valid_move = [None]
-        #        self.state = 1
-        #        
-        #else:
-        #    # on green light, depending on the cars we have oncoming, right or left, we can do one of the following:
-        #    if inputs['oncoming'] == None:
-        #        if inputs['right'] == None:
-        #            if inputs['left'] == None:
-        #                valid_move = ['forward', 'left', 'right']
-        #                self.state = 2
-        #                
-        #            else:
-        #                valid_move = ['forward', 'right']
-        #                self.state = 3
-        #                
-        #        else:
-        #            if inputs['left'] == None:
-        #                valid_move = ['forward', 'left']
-        #                self.state = 4
-        #                
-        #            else:
-        #                valid_move = ['forward']
-        #                self.state = 5
-        #                
-        #    else:
-        #        if inputs['right'] == None:
-        #            if inputs['left'] == None:
-        #                valid_move = ['left', 'right']
-        #                self.state = 6
-        #                
-        #            else:
-        #                valid_move = ['right']
-        #                self.state = 7
-        #                
-        #        else:
-        #            if inputs['left'] == None:
-        #                valid_move = ['left']
-        #                self.state = 8
-        #                
-        #            else:
-        #                valid_move = [None]
-        #                self.state = 9
-        #                
-#
-        ##now, we add the value depending on the next_waypoint:
-#
-        #if self.next_waypoint == 'forward':
-        #    self.state += 0
-        #elif self.next_waypoint == 'right':
-        #    self.state += 10
-        #else:
-        #    self.state += 20
-#
-
-
-
-        # code for the informed agent part:
-
-        #if self.next_waypoint in valid_move:
-        #    action = self.next_waypoint
-        #else:
-        #    valid_move_len = random.randint(0,len(valid_move))-1 if len(valid_move)>0 else 0
-        #    action = valid_move[valid_move_len]
-
+        
         #instead of chosing a random action, select the best_action_a Q(s,a)
         counter = Counter(self.q_table[self.state])
 
-        # get the best_action value:
+        # get the best_action value and the q-max value.
         
         max_q_value = counter.most_common(1)[0][1]
         best_action = counter.most_common(1)[0][0]
-        #print "Max q_value {}, best_action {}".format(max_q_value,best_action)
-        # debug the action:
-        #print "---------> State: {} Q-value {} - index: {}".format(self.state, counter.most_common(1),best_action)
 
-        # use of epsilon:
-        # if random <= epsilon: choose best_action.
-        # otherwise choose a random action.
-        
-
+        # use of epsilon to balance between exploration and exploitation
 
         action = best_action if random.random()<=self.epsilon else  self.valid_actions[random.randint(0,len(self.valid_actions)-1)]
-
-
-        #action = best_action
-
-
-
-        # hypothesis 2: do only if the action is on the 
-
-        #action = None
 
         # Execute action and get reward
         reward = self.env.act(self, action)
@@ -200,8 +97,6 @@ class LearningAgent(Agent):
         self.prev_action = action
         self.prev_reward = reward
         self.prev_state = self.state
-
-        #print "Current state {}".format(self.state)
 
         print "LearningAgent.update(): deadline = {}, inputs = {}, action = {}, reward = {}".format(deadline, inputs, action, reward)  # [debug]
 
