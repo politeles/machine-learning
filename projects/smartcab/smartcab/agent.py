@@ -3,6 +3,24 @@ from environment import Agent, Environment
 from planner import RoutePlanner
 from simulator import Simulator
 from collections import Counter
+from collections import namedtuple
+
+class State():
+    """ Agent state """
+    def __init__(self,inputs,next_waypoint):
+        self.inputs = inputs
+        self.next_waypoint = next_waypoint
+
+    def __hash__(self):
+        return hash((self.inputs['light'],self.inputs['oncoming'],self.inputs['left'],self.inputs['right'],self.next_waypoint))
+
+    def __eq__(self,other):
+        return (self.inputs['light'],self.inputs['oncoming'],self.inputs['left'],self.inputs['right'],self.next_waypoint) == (other.inputs['light'],other.inputs['oncoming'],other.inputs['left'],other.inputs['right'],other.next_waypoint)
+
+    def __ne__(self,other):
+        return not(self == other)
+
+
 
 class LearningAgent(Agent):
     """An agent that learns to drive in the smartcab world."""
@@ -26,11 +44,11 @@ class LearningAgent(Agent):
         # Q-table initialization to 0:
         self.q_table = dict()
         for light in ['green','red']:
-            for oncoming in ['None', 'forward', 'left', 'right']:
-                for left in ['None', 'forward', 'left', 'right']:
-                    for right in ['None', 'forward', 'left', 'right']:
+            for oncoming in [None, 'forward', 'left', 'right']:
+                for left in [None, 'forward', 'left', 'right']:
+                    for right in [None, 'forward', 'left', 'right']:
                         for waypoint in ['forward', 'left', 'right']:
-                            self.q_table[light+oncoming+left+right+waypoint] = {None:0,'forward':0,'left':0,'right':0}
+                            self.q_table[State({'light':light,'oncoming':oncoming,'left':left,'right':right},waypoint)] = {None:0,'forward':0,'left':0,'right':0}
 
         # parameters:
         self.gamma = 0.1
@@ -64,7 +82,8 @@ class LearningAgent(Agent):
         state_left = 'None' if state_dict['left']==None else state_dict['left']
         state_right = 'None' if state_dict['right']==None else state_dict['right']
 
-        self.state = state_light+state_oncoming+state_left+state_right+state_dict['next_waypoint']
+        #self.state = state_light+state_oncoming+state_left+state_right+state_dict['next_waypoint']
+        self.state = State(inputs,self.next_waypoint)
         #print "current state: {}".format(self.state)
 
                
